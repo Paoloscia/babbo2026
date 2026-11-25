@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quando ci siamo tutti?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f6f2ea; --card:#fffdf8; --ink:#1d1a16; --muted:#7a7166; --line:#e6dfd2;
+    --yes:#2f8f5b; --yes-bg:#dff1e6; --no:#c2463a; --no-bg:#f7e0dc; --unk:#d8d1c4;
+    --accent:#e2a72e; --all:#1d1a16;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#17150f; --card:#211e17; --ink:#f3eee4; --muted:#a39a8b; --line:#353026;
+      --yes:#5cc48a; --yes-bg:#1f3a2a; --no:#e57366; --no-bg:#3d2320; --unk:#4a4438; --all:#f3eee4; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 Inter,system-ui,sans-serif;
+    padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+  .wrap{max-width:760px;margin:0 auto;padding:28px 16px 60px}
+  h1{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:clamp(30px,7vw,46px);line-height:1;margin:0 0 8px;letter-spacing:-.02em}
+  .sub{color:var(--muted);margin:0 0 24px}
+  h2{font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:18px;margin:0 0 10px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:16px}
+  .who{display:flex;flex-wrap:wrap;gap:8px}
+  .who button{font:600 14px Inter,sans-serif;border:1.5px solid var(--line);background:transparent;color:var(--ink);
+    padding:8px 14px;border-radius:999px;cursor:pointer;position:relative}
+  .who button.sel{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .who button .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--yes);margin-left:6px;vertical-align:middle}
+  .hint{color:var(--muted);font-size:13px;margin:10px 0 0}
+  .best{display:flex;flex-wrap:wrap;gap:8px}
+  .pill{font:600 14px Inter,sans-serif;padding:8px 12px;border-radius:12px;background:var(--yes-bg);color:var(--yes)}
+  .pill.full{background:var(--all);color:var(--bg)}
+  .pill small{font-weight:500;opacity:.8;margin-left:4px}
+  .empty{color:var(--muted);font-size:14px}
+  .week{font:600 12px Inter,sans-serif;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:18px 4px 6px}
+  .day{display:grid;grid-template-columns:78px 1fr auto;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;
+    border:1px solid var(--line);background:var(--card);margin-bottom:6px;cursor:pointer;user-select:none;transition:transform .08s}
+  .day:active{transform:scale(.99)}
+  .day.ro{cursor:default}
+  .day.all{border-color:var(--all);box-shadow:inset 0 0 0 1px var(--all)}
+  .day.wkend .dname{color:var(--accent)}
+  .dname{font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:15px;line-height:1.1}
+  .dname span{display:block;font:500 12px Inter,sans-serif;color:var(--muted)}
+  .chips{display:flex;flex-wrap:wrap;gap:4px}
+  .chip{font:600 11px Inter,sans-serif;width:30px;height:24px;border-radius:7px;display:flex;align-items:center;justify-content:center;
+    background:transparent;border:1.5px dashed var(--unk);color:var(--muted)}
+  .chip.si{background:var(--yes-bg);border:1.5px solid var(--yes);color:var(--yes)}
+  .chip.no{background:var(--no-bg);border:1.5px solid var(--no);color:var(--no);text-decoration:line-through}
+  .chip.me{outline:2px solid var(--ink);outline-offset:1px}
+  .count{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:18px;min-width:44px;text-align:right}
+  .count.full{color:var(--yes)}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin:8px 0 0}
+  .legend .chip{display:inline-flex;margin-right:5px;vertical-align:middle}
+  .status{font-size:13px;color:var(--muted);min-height:18px;margin:0 0 10px}
+  .status.err{color:var(--no)}
+  .bulk{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+  .bulk button{font:500 13px Inter,sans-serif;border:1px solid var(--line);background:transparent;color:var(--ink);padding:6px 10px;border-radius:8px;cursor:pointer}
+  @media (max-width:520px){
+    .day{grid-template-columns:62px 1fr auto;padding:9px 10px;gap:8px}
+    .chip{width:27px;height:22px;font-size:10px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Quando ci siamo tutti?</h1>
+  <p class="sub">Segna i giorni in cui ci sei, dal 1 dicembre al 6 gennaio.</p>
+
+  <div class="card">
+    <h2>Chi sei?</h2>
+    <div class="who" id="who"></div>
+    <p class="hint" id="whoHint">Scegli il tuo nome, poi tocca i giorni: una volta = ci sono, due = non ci sono, tre = cancella.</p>
+    <div class="bulk" id="bulk" hidden>
+      <button data-bulk="si">Ci sono tutti i giorni liberi</button>
+      <button data-bulk="clear">Cancella le mie risposte</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Giorni migliori</h2>
+    <div class="best" id="best"><span class="empty">Ancora nessuna risposta.</span></div>
+  </div>
+
+  <p class="status" id="status">Carico le risposte...</p>
+  <div id="days"></div>
+  <div class="legend">
+    <span><span class="chip si">Ab</span>ci sono</span>
+    <span><span class="chip no">Ab</span>non ci sono</span>
+    <span><span class="chip">Ab</span>non ha risposto</span>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// === CONFIG SUPABASE: Project Settings > API ===
+const SUPABASE_URL = "https://rqkjkaefjwycnjakpogq.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_mZhG4Cz6sRQWKiw4Y3jILA_FY1SBEdv";
+
+const NAMES = ["Paolo","Egle","Zin","Jimmy","Free","Sarti","Frax","Mushu","Benny"];
+const START = new Date(2026,11,1), END = new Date(2027,0,6);
+const DOW = ["dom","lun","mar","mer","gio","ven","sab"];
+const MON = ["gen","feb","mar","apr","mag","giu","lug","ago","set","ott","nov","dic"];
+const pad = n => String(n).padStart(2,"0");
+const key = d => d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const DAYS = [];
+for (let d=new Date(START); d<=END; d.setDate(d.getDate()+1)) DAYS.push(new Date(d));
+const abbr = n => n.slice(0,2);
+
+let data = {};          // name -> {dateKey: "si"|"no"}
+let me = null;
+let db = null, canWrite = true;
+const pending = {};     // name -> timer
+const writing = {};     // name -> promise chain
+try { me = localStorage.getItem("presenze_me"); if (!NAMES.includes(me)) me = null; } catch(e) {}
+
+const $ = id => document.getElementById(id);
+function setStatus(t, err){ const s=$("status"); s.textContent=t||""; s.className="status"+(err?" err":""); }
+
+function renderWho(){
+  const w=$("who"); w.textContent="";
+  NAMES.forEach(n=>{
+    const b=document.createElement("button");
+    b.textContent=n; if(n===me) b.className="sel";
+    if (data[n] && Object.keys(data[n]).length){ const dot=document.createElement("span"); dot.className="dot"; dot.title="ha risposto"; b.appendChild(dot); }
+    b.onclick=()=>{ me = (me===n?null:n); try{ if(me) localStorage.setItem("presenze_me",me); else localStorage.removeItem("presenze_me"); }catch(e){} render(); };
+    w.appendChild(b);
+  });
+  $("bulk").hidden = !me || !canWrite;
+  $("whoHint").textContent = !canWrite ? "Salvataggio non disponibile al momento."
+    : me ? "Ciao "+me+"! Tocca un giorno: una volta = ci sono, due = non ci sono, tre = cancella."
+    : "Scegli il tuo nome, poi tocca i giorni: una volta = ci sono, due = non ci sono, tre = cancella.";
+}
+
+function stateOf(n,k){ return (data[n]||{})[k]||""; }
+
+function renderBest(){
+  const scored = DAYS.map(d=>{ const k=key(d); return {d, yes: NAMES.filter(n=>stateOf(n,k)==="si").length, no: NAMES.filter(n=>stateOf(n,k)==="no").length}; });
+  const any = scored.some(s=>s.yes>0);
+  const b=$("best"); b.textContent="";
+  if(!any){ const s=document.createElement("span"); s.className="empty"; s.textContent="Ancora nessuna risposta."; b.appendChild(s); return; }
+  const full = scored.filter(s=>s.yes===NAMES.length);
+  let list = full.length ? full : (()=>{ const max=Math.max(...scored.map(s=>s.yes)); return scored.filter(s=>s.yes===max); })();
+  if(!full.length){ const s=document.createElement("span"); s.className="empty"; s.style.width="100%"; s.textContent="Nessun giorno con tutti e 9, per ora. I più votati:"; b.appendChild(s); }
+  list.slice(0,10).forEach(s=>{
+    const p=document.createElement("span"); p.className="pill"+(s.yes===NAMES.length?" full":"");
+    p.textContent=DOW[s.d.getDay()]+" "+s.d.getDate()+" "+MON[s.d.getMonth()];
+    const sm=document.createElement("small"); sm.textContent=s.yes+"/"+NAMES.length; p.appendChild(sm);
+    b.appendChild(p);
+  });
+}
+
+function renderDays(){
+  const box=$("days"); box.textContent="";
+  let lastWeek=null;
+  DAYS.forEach(d=>{
+    const monday=new Date(d); monday.setDate(d.getDate()-((d.getDay()+6)%7));
+    const wk=key(monday);
+    if(wk!==lastWeek){ lastWeek=wk; const h=document.createElement("div"); h.className="week";
+      const sun=new Date(monday); sun.setDate(monday.getDate()+6);
+      h.textContent="Settimana "+monday.getDate()+" "+MON[monday.getMonth()]+" - "+sun.getDate()+" "+MON[sun.getMonth()]; box.appendChild(h); }
+    const k=key(d);
+    const yes=NAMES.filter(n=>stateOf(n,k)==="si").length;
+    const row=document.createElement("div");
+    row.className="day"+(yes===NAMES.length?" all":"")+((d.getDay()===0||d.getDay()===6)?" wkend":"")+((!me||!canWrite)?" ro":"");
+    const nm=document.createElement("div"); nm.className="dname"; nm.textContent=DOW[d.getDay()]+" "+d.getDate();
+    const mo=document.createElement("span"); mo.textContent=MON[d.getMonth()]; nm.appendChild(mo);
+    const chips=document.createElement("div"); chips.className="chips";
+    NAMES.forEach(n=>{ const c=document.createElement("span"); const st=stateOf(n,k);
+      c.className="chip"+(st?" "+st:"")+(n===me?" me":""); c.textContent=abbr(n); c.title=n+(st==="si"?": ci sono":st==="no"?": non ci sono":": non ha risposto"); chips.appendChild(c); });
+    const ct=document.createElement("div"); ct.className="count"+(yes===NAMES.length?" full":""); ct.textContent=yes+"/"+NAMES.length;
+    row.append(nm,chips,ct);
+    row.onclick=()=>toggle(k);
+    box.appendChild(row);
+  });
+}
+
+function render(){ renderWho(); renderBest(); renderDays(); }
+
+function toggle(k){
+  if(!me){ setStatus("Prima scegli il tuo nome in alto."); window.scrollTo({top:0,behavior:"smooth"}); return; }
+  if(!canWrite) return;
+  const cur=stateOf(me,k); const next = cur===""?"si":cur==="si"?"no":"";
+  const mine={...(data[me]||{})}; if(next) mine[k]=next; else delete mine[k];
+  data={...data,[me]:mine}; render(); queueSave(me);
+}
+
+function bulk(kind){
+  if(!me||!canWrite) return;
+  const mine={...(data[me]||{})};
+  if(kind==="clear"){ data={...data,[me]:{}}; }
+  else { DAYS.forEach(d=>{ const k=key(d); if(!mine[k]) mine[k]="si"; }); data={...data,[me]:mine}; }
+  render(); queueSave(me);
+}
+document.querySelectorAll("[data-bulk]").forEach(b=>b.onclick=()=>bulk(b.dataset.bulk));
+
+function queueSave(name){
+  if(!db){ setStatus("Salvataggio non disponibile in questa vista.", true); return; }
+  clearTimeout(pending[name]);
+  setStatus("Salvo...");
+  pending[name]=setTimeout(()=>{
+    pending[name]=null;
+    const body={name, days:{...(data[name]||{})}, updated_at:new Date().toISOString()};
+    writing[name]=(writing[name]||Promise.resolve())
+      .then(()=>db.from("presenze").upsert(body))
+      .then(({error})=>{ if(error) throw error; setStatus("Salvato."); })
+      .catch(()=>setStatus("Non sono riuscito a salvare, riprova.", true));
+  }, 500);
+}
+
+render();
+
+function applyRow(r){
+  if(!r || !NAMES.includes(r.name)) return;
+  if(pending[r.name]) return; // modifica locale non ancora salvata
+  const src=(r.days && typeof r.days==="object")?r.days:{}; const days={};
+  Object.keys(src).forEach(k=>{ if(src[k]==="si"||src[k]==="no") days[k]=src[k]; });
+  data={...data,[r.name]:days};
+}
+
+(async()=>{
+  try{ db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); }catch(e){ db=null; }
+  if(!db){ canWrite=false; render(); setStatus("Database non configurato.", true); return; }
+  const { data: rows, error } = await db.from("presenze").select("name,days");
+  if(error){ setStatus("Non riesco a leggere le risposte.", true); return; }
+  rows.forEach(applyRow); render(); setStatus("");
+  db.channel("presenze-live")
+    .on("postgres_changes", { event:"*", schema:"public", table:"presenze" }, p=>{
+      if(p.eventType==="DELETE"){ const n=p.old && p.old.name; if(n && !pending[n]){ const d={...data}; delete d[n]; data=d; } }
+      else applyRow(p.new);
+      render();
+    })
+    .subscribe();
+})();
+</script>
+</body>
+</html>
